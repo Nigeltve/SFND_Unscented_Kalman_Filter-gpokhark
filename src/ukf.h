@@ -5,7 +5,14 @@
 #include "measurement_package.h"
 
 class UKF {
- public:
+private:
+//  MatrixXd GenerateSigmaPoints(Eigen::MatrixXd* Xsig_out);
+//  MatrixXd PredictSigmaPoints(Eigen::MatrixXd* Xsig_out);
+//  MatrixXd PredictMeanAndCovariance(Eigen::VectorXd* x_pred, Eigen::MatrixXd* P_pred);
+//  MatrixXd PredictRadarMeasurement(Eigen::VectorXd* z_out, Eigen::MatrixXd* S_out);
+//  MatrixXd PredictLidarMeasurement(Eigen::VectorXd* z_out, Eigen::MatrixXd* S_out);
+public:
+
   /**
    * Constructor
    */
@@ -95,6 +102,13 @@ class UKF {
 
   // Sigma point spreading parameter
   double lambda_;
+
+  // Radar measurement noise covariance matrix
+  Eigen::MatrixXd R_radar_;
+
+  // Lidar measurement noise covariance matrix
+  Eigen::MatrixXd R_lidar_;
+
 };
 
 #endif  // UKF_H
