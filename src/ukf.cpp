@@ -10,7 +10,7 @@ using Eigen::VectorXd;
  */
 UKF::UKF() {
   // if this is false, laser measurements will be ignored (except during init)
-  use_laser_ = true;
+  use_laser_ = false;
 
   // if this is false, radar measurements will be ignored (except during init)
   use_radar_ = true;
@@ -73,6 +73,9 @@ UKF::UKF() {
    weights_ = VectorXd(2 * n_aug_ + 1);
    weights_.fill(0.5/(lambda_ + n_aug_));
    weights_(0) = lambda_/(lambda_ + n_aug_);
+
+   // sigma point prediction
+   Xsig_pred_ = MatrixXd(n_x_, 2*n_aug_+1);
 
    // Initialize measurement noise covairance matix
    R_radar_ = MatrixXd(3, 3);
@@ -161,8 +164,8 @@ void UKF::Prediction(double delta_t) {
      Xsig_aug.col(i+1+n_aug_) = x_aug - sqrt(lambda_+n_aug_) * L.col(i);
    }
 
-   // sigma point prediction
-   MatrixXd Xsig_pred_ = MatrixXd(n_x_, 2*n_aug_+1);
+   // // sigma point prediction
+   // MatrixXd Xsig_pred_ = MatrixXd(n_x_, 2*n_aug_+1);
 
    for(int i = 0; i<2*n_aug_+1; i++){
      double p_x = Xsig_aug(0, i);
@@ -217,7 +220,6 @@ void UKF::Prediction(double delta_t) {
      while(x_diff(3) < -M_PI) x_diff(3) += 2.*M_PI;
      P_ = P_ + weights_(i)*x_diff*x_diff.transpose();
    }
-std::cout << Xsig_pred_.size()<<std::endl;
    }
 
 void UKF::UpdateLidar(MeasurementPackage meas_package) {
@@ -238,35 +240,39 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
    */
    // Measurement prediction
    // set measurement dimension, radar can measure r, phi, and r_dot
+
+   //extract measurement as VectorXd
+   VectorXd z_ = meas_package.raw_measurements_;
+
    int n_z_ = 3;
-   MatrixXd Zsig_pred_ = MatrixXd(n_z_, 2*n_aug_+1);
-   Zsig_pred_.fill(0.0);
+   MatrixXd Zsig = MatrixXd(n_z_, 2*n_aug_+1);
+
    for(int i = 0; i < 2 * n_aug_ + 1; i++){
-     double p_x = 0.2;//Xsig_pred_(0, i);
-     double p_y = 0.2;//Xsig_pred_(1, i);
-     double v = 0.2;//Xsig_pred_(2, i);
-     double yaw = 0.2;//Xsig_pred_(3, i);
-     double yawd = 0.2;//Xsig_pred_(4, i);
+     double p_x = Xsig_pred_(0, i);
+     double p_y = Xsig_pred_(1, i);
+     double v = Xsig_pred_(2, i);
+     double yaw = Xsig_pred_(3, i);
+     double yawd = Xsig_pred_(4, i);
 
      double vx = cos(yaw)*v;
      double vy = sin(yaw)*v;
 
-     Zsig_pred_(0, i) = sqrt(p_x*p_x + p_y*p_y);                      // r
-     Zsig_pred_(1, i) = atan2(p_y, p_x);                              // phi
-     Zsig_pred_(2, i) = (p_x*vx + p_y*vy)/(sqrt(p_x*p_x + p_y*p_y));  // r_dot
+     Zsig(0, i) = sqrt(p_x*p_x + p_y*p_y);                      // r
+     Zsig(1, i) = atan2(p_y, p_x);                              // phi
+     Zsig(2, i) = (p_x*vx + p_y*vy)/(sqrt(p_x*p_x + p_y*p_y));  // r_dot
    }
 
    // calculate mean predicted measurement
    VectorXd z_pred_ = VectorXd(n_z_);
    z_pred_.fill(0.0);
    for(int i = 0; i < 2*n_aug_+1; i++){
-     z_pred_ = z_pred_ + weights_(i)*Zsig_pred_.col(i);
+     z_pred_ = z_pred_ + weights_(i)*Zsig.col(i);
    }
    // calculate covariance of predicted measurement
    MatrixXd S = MatrixXd(n_z_, n_z_);
    S.fill(0.0);
    for(int i = 0; i < 2*n_aug_+1; i++){
-     VectorXd z_diff = Zsig_pred_.col(i) - z_pred_;
+     VectorXd z_diff = Zsig.col(i) - z_pred_;
 
      while(z_diff(1) > M_PI) z_diff(1) -= 2.*M_PI;
      while(z_diff(1) < -M_PI) z_diff(1) += 2.*M_PI;
@@ -276,4 +282,34 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
    // add measurement noise covariance matrix
    S = S + R_radar_;
+
+   // UKF update
+   // Cross correlation matrixc between sigma points in state space
+   // and measurement space
+   MatrixXd Tc = MatrixXd(n_x_, n_z_);
+   Tc.fill(0.0);
+   for(int i = 0; i < 2*n_aug_+1; i++){
+     VectorXd x_diff = Xsig_pred_.col(i) - x_;
+     while(x_diff(3) > M_PI) x_diff(3) -= 2.*M_PI;
+     while(x_diff(3) < -M_PI) x_diff(3) += 2.*M_PI;
+
+     VectorXd z_diff = Zsig.col(i) - z_pred_;
+     while(z_diff(1) > M_PI) z_diff(1) -= 2.*M_PI;
+     while(z_diff(1) < -M_PI) z_diff(1) += 2.*M_PI;
+
+     Tc = Tc + weights_(i) * x_diff * z_diff.transpose();
+   }
+
+   // calculate Kalman gain K
+   MatrixXd K = Tc * S.inverse();
+
+   // update state mean and covariance
+   // residual
+   VectorXd z_diff = z_ - z_pred_;
+   while(z_diff(1) > M_PI) z_diff(1) -= 2.*M_PI;
+   while(z_diff(1) < -M_PI) z_diff(1) += 2.*M_PI;
+
+   x_ = x_ + K*z_diff;
+
+   P_ = P_ - K*S*K.transpose();
 }
