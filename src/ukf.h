@@ -109,6 +109,12 @@ public:
   // Lidar measurement noise covariance matrix
   Eigen::MatrixXd R_lidar_;
 
+  ///* the current NIS for radar
+  double NIS_radar_;
+
+  ///* the current NIS for laser
+  double NIS_laser_;
+
 };
 
 #endif  // UKF_H

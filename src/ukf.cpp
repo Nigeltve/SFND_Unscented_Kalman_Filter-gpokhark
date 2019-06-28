@@ -88,6 +88,12 @@ UKF::UKF() {
    R_lidar_ = MatrixXd(2,2);
    R_lidar_ << std_laspx_*std_laspx_, 0,
                0, std_laspy_*std_laspy_;
+
+   // the current NIS for radar
+   NIS_radar_ = 0.0;
+
+   // the current NIS for laser
+   NIS_laser_ = 0.0;
 }
 
 UKF::~UKF() {}
@@ -280,6 +286,9 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
    x_ = x_ + K*z_diff;
 
    P_ = P_ - K*S*K.transpose();
+
+   //calculate NIS
+   NIS_laser_ = z_diff.transpose() * S.inverse() * z_diff;
 }
 
 void UKF::UpdateRadar(MeasurementPackage meas_package) {
@@ -363,4 +372,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
    x_ = x_ + K*z_diff;
 
    P_ = P_ - K*S*K.transpose();
+
+   //calculate NIS
+   NIS_radar_ = z_diff.transpose() * S.inverse() * z_diff;
 }
