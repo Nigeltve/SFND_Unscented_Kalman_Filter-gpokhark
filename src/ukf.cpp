@@ -23,8 +23,8 @@ UKF::UKF() {
 
   // initial covariance matrix
   P_ = MatrixXd(n_x_, n_x_);
-  P_ << 1, 0, 0, 0, 0,
-        0, 1, 0, 0, 0,
+  P_ << 0.15, 0, 0, 0, 0,
+        0, 0.15, 0, 0, 0,
         0, 0, 1, 0, 0,
         0, 0, 0, 1, 0,
         0, 0, 0, 0, 1;
@@ -69,6 +69,8 @@ UKF::UKF() {
 
    lambda_ = 3 - n_aug_;
 
+   time_us_ = 0.0;
+
    // Initialize weights_
    weights_ = VectorXd(2 * n_aug_ + 1);
    weights_.fill(0.5/(lambda_ + n_aug_));
@@ -105,13 +107,13 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       double vx = rho_dot * cos(phi);
       double vy = rho_dot * sin(phi);
       double v = sqrt(vx * vx + vy * vy);
-      x_ << x , y, 0, 0, 0;
+      x_ << x , y, v, 0, 0;
      }
      else {
        x_ << meas_package.raw_measurements_[0], meas_package.raw_measurements_[1], 0, 0, 0;
      }
      //  saving first timestamp in seconds
-     time_us_ = meas_package.timestamp_;
+     // time_us_ = meas_package.timestamp_;
      // done initializing no need to predict or update
      is_initialized_ = true;
      return;
@@ -179,7 +181,7 @@ void UKF::Prediction(double delta_t) {
      double px_p, py_p, v_p, yaw_p, yawd_p;
 
      // avoid division by zero
-     if(fabs(yawd > 0.001)){
+     if(fabs(yawd) > 0.001){
        px_p = p_x + v/yawd * (sin(yaw + yawd*delta_t) - sin(yaw));
        py_p = p_y + v/yawd * (-cos(yaw + yawd*delta_t) + cos(yaw));
      } else{
