@@ -27,6 +27,14 @@ int main(int argc, char** argv)
 
 	double egoVelocity = 25;
 
+	// open the text file
+	highway.rdrfile.open("NIS_RADAR.txt");
+	highway.ldrfile.open("NIS_LIDAR.txt");
+
+	// writing the table names to the files
+	highway.rdrfile << "Radar NIS, Time \n";
+	highway.ldrfile << "Lidar NIS, Time \n";
+
 	while (frame_count < (frame_per_sec*sec_interval))
 	{
 		viewer->removeAllPointClouds();
@@ -37,7 +45,10 @@ int main(int argc, char** argv)
 		viewer->spinOnce(1000/frame_per_sec);
 		frame_count++;
 		time_us = 1000000*frame_count/frame_per_sec;
-		
+
 	}
+	// close the text file
+	highway.rdrfile.close();
+	highway.ldrfile.close();
 
 }

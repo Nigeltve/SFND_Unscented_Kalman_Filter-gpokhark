@@ -1,6 +1,7 @@
 #include "ukf.h"
 #include "Eigen/Dense"
 #include<iostream>
+#include<stdio.h>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -375,4 +376,5 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
    //calculate NIS
    NIS_radar_ = z_diff.transpose() * S.inverse() * z_diff;
+
 }

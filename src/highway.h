@@ -5,6 +5,11 @@
 #include "sensors/lidar.h"
 #include "tools.h"
 
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+
 class Highway
 {
 public:
@@ -29,6 +34,10 @@ public:
 	double projectedTime = 2;
 	int projectedSteps = 6;
 	// --------------------------------
+
+	// for writing NIS values to a text file
+	ofstream rdrfile;
+	ofstream ldrfile;
 
 	Highway(pcl::visualization::PCLVisualizer::Ptr& viewer)
 	{
@@ -141,6 +150,9 @@ public:
 				estimate << traffic[i].ukf.x_[0], traffic[i].ukf.x_[1], v1, v2;
 				tools.estimations.push_back(estimate);
 
+				// writing the NIS values to the files
+				rdrfile << traffic[i].ukf.NIS_radar_ << "," << traffic[i].ukf.time_us_ << "\n";
+				ldrfile << traffic[i].ukf.NIS_laser_ << "," << traffic[i].ukf.time_us_ << "\n";
 			}
 		}
 		viewer->addText("Accuracy - RMSE:", 30, 300, 20, 1, 1, 1, "rmse");
