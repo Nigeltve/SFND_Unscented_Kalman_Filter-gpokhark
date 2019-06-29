@@ -81,9 +81,9 @@ I added following scripts to compile, build and run the project. In the project 
 
 UKF algorithm was implemented as shown in the class practice problem.
 
-To pass the project the RMSE values should not cross the threshold values set in `highway.h`. Also the solution should converge within 1.0e6 seconds of time. I observed for the solution to converge faster the value of P - uncertainty co-variance matrix should be properly initialized. I tried initializing P as an identity matrix, but the solution didn't converge fast enough to pass the timing criteria. Hence later I initialized the P matrix with the lidar measurement noise variance value of 0.15*0.15 = 0.0225 along the x and y positions. This helped in faster convergence.
+To pass the project the RMSE values should not cross the threshold values set in `highway.h`. Also the solution should converge within 1.0e6 seconds of time. I observed, for the solution to converge faster, the value of P - uncertainty co-variance matrix should be properly initialized. I tried initializing P as an identity matrix, but the solution didn't converge fast enough to pass the timing criteria. Hence later I initialized the P matrix with the lidar measurement noise variance value of 0.15*0.15 = 0.0225 along the x and y positions. This helped in faster convergence.
 
-I modified `highway.h` and `main.cpp` so as to write the NIS Radar and NIS Lidar data to their respective text files for further analysis.Created `NIS_Plotting_Script.ipynb` script to plot NIS vs steps to see if the results obtained are consistent or not. Tried different process noise co-variance values for `std_a_` and `std_yawdd_`. Finally got consistent results with `std_a_ = 3;` and `std_yawdd_ = 2;`, as you can see in the plots below.
+I modified `highway.h` and `main.cpp` so as to write the NIS Radar and NIS Lidar data to their respective text files for further analysis. Created `NIS_Plotting_Script.ipynb` script to plot NIS vs steps to see if the results obtained are consistent or not. Tried different process noise co-variance values for `std_a_` and `std_yawdd_`. Finally, got consistent results with `std_a_ = 3;` and `std_yawdd_ = 2;`, as you can see in the plots below.
 
 ![NIS_Radar_Plot](./media/NIS_Radar.png)
 
