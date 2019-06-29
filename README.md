@@ -3,7 +3,7 @@ Sensor Fusion UKF Highway Project Starter Code
 
 <img src="media/ukf_highway_tracked.gif" width="700" height="400" />
 
-In this project you will implement an Unscented Kalman Filter to estimate the state of multiple cars on a highway using noisy lidar and radar measurements. Passing the project requires obtaining RMSE values that are lower that the tolerance outlined in the project rubric. 
+In this project you will implement an Unscented Kalman Filter to estimate the state of multiple cars on a highway using noisy lidar and radar measurements. Passing the project requires obtaining RMSE values that are lower that the tolerance outlined in the project rubric.
 
 The main program can be built and ran by doing the following from the project top directory.
 
@@ -19,10 +19,10 @@ The program main.cpp has already been filled out, but feel free to modify it.
 
 <img src="media/ukf_highway.png" width="700" height="400" />
 
-`main.cpp` is using `highway.h` to create a straight 3 lane highway environment with 3 traffic cars and the main ego car at the center. 
-The viewer scene is centered around the ego car and the coordinate system is relative to the ego car as well. The ego car is green while the 
+`main.cpp` is using `highway.h` to create a straight 3 lane highway environment with 3 traffic cars and the main ego car at the center.
+The viewer scene is centered around the ego car and the coordinate system is relative to the ego car as well. The ego car is green while the
 other traffic cars are blue. The traffic cars will be accelerating and altering their steering to change lanes. Each of the traffic car's has
-it's own UKF object generated for it, and will update each indidual one during every time step. 
+it's own UKF object generated for it, and will update each indidual one during every time step.
 
 The red spheres above cars represent the (x,y) lidar detection and the purple lines show the radar measurements with the velocity magnitude along the detected angle. The Z axis is not taken into account for tracking, so you are only tracking along the X/Y axis.
 
@@ -71,6 +71,20 @@ and performing clustering. This is similar to what was done in Sensor Fusion Lid
 
 ## Project Instructions and Rubric
 
-This information is only accessible by people who are already enrolled in Sensor Fusion. 
+This information is only accessible by people who are already enrolled in Sensor Fusion.
 If you are enrolled, see the project page in the classroom
 for instructions and the project rubric.
+
+## Discussion
+
+I added following scripts to compile, build and run the project. In the project folder run `./build.sh` to build the Project `./clean.sh` to delete and clean the Project `./run.sh` to run the Project.
+
+UKF algorithm was implemented as shown in the class practice problem.
+
+To pass the project the RMSE values should not cross the threshold values set in `highway.h`. Also the solution should converge within 1.0e6 seconds of time. I observed for the solution to converge faster the value of P - uncertainty co-variance matrix should be properly initialized. I tried initializing P as an identity matrix, but the solution didn't converge fast enough to pass the timing criteria. Hence later I initialized the P matrix with the lidar measurement noise variance value of 0.15*0.15 = 0.0225 along the x and y positions. This helped in faster convergence.
+
+I modified `highway.h` and `main.cpp` so as to write the NIS Radar and NIS Lidar data to their respective text files for further analysis.Created `NIS_Plotting_Script.ipynb` script to plot NIS vs steps to see if the results obtained are consistent or not. Tried different process noise co-variance values for `std_a_` and `std_yawdd_`. Finally got consistent results with `std_a_ = 3;` and `std_yawdd_ = 2;`, as you can see in the plots below.
+
+![NIS_Radar_Plot](./media/NIS_Radar.png)
+
+![NIS_Lidar_Plot](./media/NIS_Lidar.png)
